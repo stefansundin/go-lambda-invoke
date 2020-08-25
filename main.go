@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda/messages"
@@ -46,19 +47,38 @@ func main() {
 	// Read the input data
 	payload, _ := ioutil.ReadAll(os.Stdin)
 
-	// Run the Lambda function in a go routine
+	// When it is time to exit, wait for the the Lambda process to be killed
+	var wg sync.WaitGroup
+	var exitCode int
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	defer func() {
+		cancel()
+		wg.Wait()
+		os.Exit(exitCode)
+	}()
+	// Run the Lambda function in a go routine
 	go func() {
+		wg.Add(1)
+		defer wg.Done()
 		cmd := exec.CommandContext(ctx, binary)
 		cmd.Stdout = os.Stderr
 		cmd.Stderr = os.Stderr
 		cmd.Env = append(os.Environ(),
 			"_LAMBDA_SERVER_PORT="+strconv.Itoa(port),
 		)
-		if err := cmd.Run(); err != nil {
-			panic(err)
+		err := cmd.Run()
+		if err == nil {
+			// This case should not happen normally
+			// If it does, it means that the process exited on its own, which a Lambda function shouldn't do
+			// This can happen if you run a non-Lambda program (e.g. /bin/ls)
+			fmt.Fprintf(os.Stderr, "Warning: Lambda process finished unexpectedly.\n")
+			os.Exit(1)
 		}
+		// Ignore the error if it was caused by us
+		if e, ok := err.(*exec.ExitError); ok && e.Error() == "signal: killed" {
+			return
+		}
+		panic(err)
 	}()
 
 	// Wait for the Lambda function to become ready
@@ -100,7 +120,14 @@ func main() {
 		panic(err)
 	}
 	if invokeResponse.Error != nil {
-		panic(invokeResponse.Error.Message)
+		fmt.Fprintf(os.Stderr, "\n")
+		fmt.Fprintf(os.Stderr, "The Lambda function encountered an error:\n")
+		fmt.Fprintln(os.Stderr, invokeResponse.Error.Message)
+		for _, frame := range invokeResponse.Error.StackTrace {
+			fmt.Fprintf(os.Stderr, "\t%s:%d %s\n", frame.Path, frame.Line, frame.Label)
+		}
+		exitCode = 1
+		return
 	}
 
 	// Print the output
