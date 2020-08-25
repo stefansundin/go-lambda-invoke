@@ -8,7 +8,6 @@ import (
 	"net/rpc"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"sync"
 	"time"
@@ -38,12 +37,6 @@ func main() {
 	}
 	host := "localhost:" + strconv.Itoa(port)
 
-	// Get the absolute path to the binary
-	binary, err := filepath.Abs(os.Args[1])
-	if err != nil {
-		panic(err)
-	}
-
 	// Read the input data
 	payload, _ := ioutil.ReadAll(os.Stdin)
 
@@ -60,7 +53,7 @@ func main() {
 	go func() {
 		wg.Add(1)
 		defer wg.Done()
-		cmd := exec.CommandContext(ctx, binary)
+		cmd := exec.CommandContext(ctx, os.Args[1], os.Args[2:]...)
 		cmd.Stdout = os.Stderr
 		cmd.Stderr = os.Stderr
 		cmd.Env = append(os.Environ(),

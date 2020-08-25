@@ -6,6 +6,9 @@ go get -u github.com/stefansundin/go-lambda-invoke
 
 go build
 cat event.json | go-lambda-invoke mylambdafunction
+
+# or:
+cat event.json | go-lambda-invoke go run mylambdafunction.go
 ```
 
 See [example](example) for a quick example.
