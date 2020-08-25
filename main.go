@@ -51,6 +51,8 @@ func main() {
 	defer cancel()
 	go func() {
 		cmd := exec.CommandContext(ctx, binary)
+		cmd.Stdout = os.Stderr
+		cmd.Stderr = os.Stderr
 		cmd.Env = append(os.Environ(),
 			"_LAMBDA_SERVER_PORT="+strconv.Itoa(port),
 		)
@@ -102,5 +104,9 @@ func main() {
 	}
 
 	// Print the output
-	fmt.Println(string(invokeResponse.Payload))
+	fmt.Print(string(invokeResponse.Payload))
+	// If the output does not end with a newline, then output one to stderr to make the terminal look nicer
+	if invokeResponse.Payload[len(invokeResponse.Payload)-1] != '\n' {
+		fmt.Fprint(os.Stderr, "\n")
+	}
 }
