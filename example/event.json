@@ -1,0 +1,11 @@
+{
+  "requestContext": {
+    "http": {
+      "method": "GET"
+    }
+  },
+  "Headers": {
+    "host": "localhost"
+  },
+  "Path": "/world"
+}
