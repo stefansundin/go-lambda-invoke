@@ -1,4 +1,4 @@
-This program lets you easily invoke a Lambda function locally and send it an event.
+This program lets you easily invoke a Go Lambda function locally and send it an event.
 
 How to use:
 ```
