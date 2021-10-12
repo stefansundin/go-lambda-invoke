@@ -1,2 +1,7 @@
 /go-lambda-invoke
 /example/toupperlambda
+
+Thumbs.db
+*.DS_Store
+*.swp
+*~

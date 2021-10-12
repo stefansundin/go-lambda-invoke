@@ -2,7 +2,7 @@ This program lets you easily invoke a Go Lambda function locally and send it an 
 
 How to use:
 ```
-go get -u github.com/stefansundin/go-lambda-invoke
+go install github.com/stefansundin/go-lambda-invoke@latest
 
 go build
 cat event.json | go-lambda-invoke mylambdafunction
