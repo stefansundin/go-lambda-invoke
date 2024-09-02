@@ -95,14 +95,14 @@ func main() {
 
 	// Invoke the Lambda function
 	var invokeResponse messages.InvokeResponse
-	now := time.Now()
+	deadline := time.Now().Add(60 * time.Minute)
 	invokeRequest := &messages.InvokeRequest{
 		Payload:      payload,
 		RequestId:    "0",
 		XAmznTraceId: "",
 		Deadline: messages.InvokeRequest_Timestamp{
-			Seconds: int64(now.Unix()),
-			Nanos:   int64(now.Nanosecond()),
+			Seconds: int64(deadline.Unix()),
+			Nanos:   int64(deadline.Nanosecond()),
 		},
 		InvokedFunctionArn:    "",
 		CognitoIdentityId:     "",
