@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/rpc"
 	"os"
@@ -38,7 +38,7 @@ func main() {
 	host := "localhost:" + strconv.Itoa(port)
 
 	// Read the input data
-	payload, _ := ioutil.ReadAll(os.Stdin)
+	payload, _ := io.ReadAll(os.Stdin)
 
 	// When it is time to exit, wait for the the Lambda process to be killed
 	var wg sync.WaitGroup
@@ -50,8 +50,8 @@ func main() {
 		os.Exit(exitCode)
 	}()
 	// Run the Lambda function in a go routine
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 		cmd := exec.CommandContext(ctx, os.Args[1], os.Args[2:]...)
 		cmd.Stdout = os.Stderr
